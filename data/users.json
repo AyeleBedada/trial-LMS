@@ -1,5 +1,5 @@
 [
-  { "email": "ayele.architet@gmail.com", "username":"admin", "password": "alliswell123", "role": "admin", "name":"Administrator" },
+  { "email": "ayele.architect@gmail.com", "username":"admin", "password": "alliswell123", "role": "admin", "name":"Administrator" },
   { "email": "ayele.bedada@eiabc.edu.et", "username":"student1", "password": "thesecond123", "role": "student", "name":"Student One" },
   { "email": "ayele.bedada@aau.edu.et", "username":"student2", "password": "alliswell123", "role": "student", "name":"Student Two" }
 ]
