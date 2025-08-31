@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trial LMS — Welcome</title><link rel="stylesheet" href="css/style.css"></head>
+<body>
+  <div class="welcome">
+    <div class="container login-card">
+      <div class="card welcome-hero">
+        <h1>Welcome to Trial LMS</h1>
+        <p class="lead">A modern demo learning environment for students and staff. Sign in to begin.</p>
+        <p class="muted">Demo note: authentication runs in the browser; do not use real credentials.</p>
+      </div>
+      <div class="card login-box">
+        <h2>Sign in</h2>
+        <form id="loginForm" class="login-form">
+          <input id="email" placeholder="Email" type="email" required>
+          <input id="password" placeholder="Password" type="password" required>
+          <button class="btn" type="submit">Login</button>
+          <div id="loginError" class="error" role="alert" aria-live="polite"></div>
+        </form>
+        <hr style="opacity:.06;margin:12px 0">
+        <div class="muted">Demo accounts:<br><small>admin@trial-lms.edu / Admin123! (admin)</small><br><small>student1@trial-lms.edu / Pass1234</small></div>
+      </div>
+    </div>
+  </div>
+<script src="js/auth.js"></script>
+</body>
+</html>

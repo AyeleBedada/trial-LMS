@@ -1,177 +1,84 @@
-/* css/style.css
-   Modern, responsive, accessible styles for Ayele's College demo LMS.
-   Uses CSS variables and a grid/flex layout. */
-
+/* css/style.css - Trial LMS (modern, responsive) */
 :root{
-  --bg-0: #0b0f1a;
-  --bg-1: #0f1630;
-  --panel: #12162b;
-  --panel-2: #18203e;
-  --muted: #b9c1e6;
-  --text: #eef2ff;
-  --accent: #6c8bff;
-  --accent-2: #4de2b9;
-  --danger: #ff6b7a;
-  --ok: #34d399;
-  --glass: rgba(255,255,255,0.04);
-  --radius: 14px;
-  --shadow: 0 8px 22px rgba(3,6,23,0.6);
-  --max-width: 1150px;
-  --gutter: 18px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  color-scheme: dark;
+  --bg:#071027; --panel:#0d1326; --muted:#b7c1e6; --text:#eef2ff;
+  --accent:#6c8bff; --accent2:#4de2b9; --ok:#34d399; --danger:#ff6b7a;
+  --glass: rgba(255,255,255,0.03); --radius:12px; --shadow: 0 10px 30px rgba(2,6,23,0.6);
+  --maxw:1200px;
 }
-
-/* Reset & base */
 *{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(108,139,255,0.06), transparent),
-              linear-gradient(180deg,var(--bg-0),var(--bg-1));
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  line-height:1.45;
-  padding:20px;
-}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:linear-gradient(180deg,#071027 0%, #081122 100%);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.container{max-width:var(--maxw);margin:20px auto;padding:16px;display:grid;gap:18px}
 
-/* Page container (centered) */
-.app{
-  max-width:var(--max-width);
-  margin:0 auto;
-  display:grid;
-  grid-template-columns: 1fr;
-  gap:var(--gutter);
-}
-
-/* TOP MENU (not on welcome page) */
+/* topbar */
 .topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  padding:12px 16px;
-  border-radius:12px;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(255,255,255,0.02);
+  display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:var(--shadow)
 }
 .brand{display:flex;gap:12px;align-items:center}
-.logo{
-  width:44px;height:44px;border-radius:10px;
-  background: conic-gradient(from 200deg,var(--accent),var(--accent-2));
-  box-shadow: 0 6px 20px rgba(77,226,185,0.06);
-}
-.topnav{display:flex;gap:8px;align-items:center}
-.topnav a, .topnav button{
-  background:transparent;border:0;color:var(--muted);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;
-}
-.topnav a.active{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#071027}
+.logo{width:44px;height:44px;border-radius:10px;background:conic-gradient(from 180deg,var(--accent),var(--accent2))}
+/* menu */
+.menu{display:flex;gap:8px;align-items:center}
+.menu a, .menu button{padding:8px 12px;border-radius:10px;background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:700}
+.menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#071027}
 
-/* Layout: sidebar + content */
-.layout{
-  display:grid;
-  grid-template-columns: 260px 1fr;
-  gap:var(--gutter);
-  align-items:start;
-}
+/* layout */
+.layout{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
+.sidebar{background:var(--panel);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:var(--shadow)}
+.sidebar .user{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.user .avatar{width:48px;height:48px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.side-nav{display:flex;flex-direction:column;gap:8px}
+.side-nav a{display:flex;justify-content:space-between;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);text-decoration:none;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+.side-nav a[aria-current="page"]{outline:2px solid rgba(108,139,255,0.12);color:var(--text)}
 
-/* Sidebar */
-.sidebar{
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.02);
-  height:fit-content;box-shadow:var(--shadow);
-}
-.usercard{display:flex;gap:12px;align-items:center;margin-bottom:12px}
-.user-avatar{width:48px;height:48px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-.user-name{font-weight:700}
-.side-nav{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-.side-nav a{display:flex;justify-content:space-between;padding:10px;border-radius:10px;background:var(--panel-2);color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.02)}
-.side-nav a[aria-current="page"]{outline:2px solid rgba(108,139,255,0.18);background:linear-gradient(90deg, rgba(108,139,255,0.06), rgba(77,226,185,0.03));color:var(--text)}
+/* content */
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:var(--shadow)}
+.content h1{margin:0 0 8px}
+.lead{color:var(--muted);margin-bottom:12px}
 
-/* Main content card */
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
-  border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.02);box-shadow:var(--shadow)
-}
-.hero h1{margin:0 0 6px}
-.lead{color:var(--muted);margin-bottom:10px}
-
-/* Text content */
-.content p{margin:10px 0;color:var(--muted)}
-.content h2{margin:6px 0 8px}
-
-/* Quiz UI */
+/* quiz */
 .quiz{display:grid;gap:12px}
-.question{
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);
-}
-.qtitle{font-weight:700;margin-bottom:8px}
-.options{display:flex;flex-direction:column;gap:8px}
-.option{
-  display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:var(--panel);
-  cursor:pointer;
-}
-.option input{margin-top:3px}
+.question{background:var(--panel);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+.q-title{font-weight:700;margin-bottom:8px}
+.options{display:grid;gap:8px}
+.option{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
 .option.correct{border-color:rgba(52,211,153,0.35);background:linear-gradient(90deg, rgba(52,211,153,0.04), transparent)}
-.option.incorrect{border-color:rgba(255,90,122,0.22);background:linear-gradient(90deg, rgba(255,90,122,0.03), transparent)}
-.feedback{font-size:14px;margin-top:6px;color:var(--muted)}
+.option.wrong{border-color:rgba(255,90,122,0.22);background:linear-gradient(90deg, rgba(255,90,122,0.03), transparent)}
+.feedback{font-size:14px;color:var(--muted);margin-top:8px}
 
-/* Buttons */
-.btn{
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:#081025;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;
-}
-.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-.row{display:flex;gap:10px;align-items:center}
-
-/* Progress widgets */
-.progress-area{display:grid;gap:12px}
-.linear{
-  height:14px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)
-}
-.linear .bar{height:100%;width:0%;transition:width .4s cubic-bezier(.2,.9,.2,1);background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-.circular{
-  width:92px;height:92px;position:relative;display:inline-grid;place-items:center;
-}
+/* progress widgets */
+.progress-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.linear{flex:1;height:14px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+.linear .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s ease}
+.circular{width:92px;height:92px;position:relative;display:inline-grid;place-items:center}
 .circular svg{transform:rotate(-90deg)}
 .circular .value{position:absolute;font-weight:800}
-.stepper{display:flex;gap:8px;flex-wrap:wrap}
-.step{padding:6px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,0.04);color:var(--muted);font-weight:600}
+.stepper{display:flex;gap:8px}
+.step{padding:6px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,0.04);color:var(--muted)}
 .step.done{border-style:solid;background:linear-gradient(90deg, rgba(108,139,255,0.06), transparent);color:var(--text)}
-.animated{height:10px;border-radius:999px;background:repeating-linear-gradient(45deg, rgba(108,139,255,0.05) 0 10px, rgba(77,226,185,0.04) 10px 20px);position:relative;border:1px solid rgba(255,255,255,0.02);overflow:hidden}
-.animated .runner{position:absolute;inset:0;width:0%;transition:width .4s ease; background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.animated{height:10px;border-radius:999px;background:repeating-linear-gradient(45deg, rgba(108,139,255,0.05) 0 10px, rgba(77,226,185,0.04) 10px 20px);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+.animated .runner{position:absolute;inset:0;width:0%;transition:width .35s ease;background:linear-gradient(90deg,var(--accent),var(--accent2))}
 
-/* Forum */
-.forum{
-  margin-top:14px;
-  display:grid;gap:8px;
-}
-.forum .messages{max-height:280px;overflow:auto;padding:8px;border-radius:10px;background:var(--panel);border:1px solid rgba(255,255,255,0.02)}
-.msg{padding:10px;border-radius:10px;border-bottom:1px dashed rgba(255,255,255,0.02)}
-.msg .meta{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+/* forum */
+.forum{margin-top:14px}
+.forum .messages{max-height:260px;overflow:auto;padding:8px;border-radius:10px;background:var(--panel);border:1px solid rgba(255,255,255,0.02)}
+.msg{padding:10px;border-bottom:1px dashed rgba(255,255,255,0.02)}
+.msg .meta{display:flex;gap:8px;color:var(--muted);font-size:13px}
 .msg .text{margin-top:6px;color:var(--muted)}
-.forum textarea{width:100%;min-height:88px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text)}
 
-/* login/welcome page (no chrome) */
-.welcome-page{display:grid;place-items:center;padding:48px}
-.login-panel{max-width:900px;width:100%;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:center}
-.welcome-hero{padding:28px}
-.login-box{background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
-.login-box form{display:grid;gap:10px}
-.login-box input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text)}
+/* buttons + small util */
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#051026;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+
+/* welcome/login page */
+.welcome{display:grid;place-items:center;height:80vh}
+.login-card{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:center}
+.login-form input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text)}
 .error{color:var(--danger)}
 
-/* admin chip */
-.admin-panel{margin-top:12px;padding:10px;border-radius:10px;background:linear-gradient(90deg, rgba(108,139,255,0.03), transparent);border:1px solid rgba(255,255,255,0.02)}
-
 /* responsive */
-@media (max-width: 960px){
+@media (max-width:960px){
   .layout{grid-template-columns:1fr}
-  .sidebar{order:2}
-  .topnav{flex-wrap:wrap}
-  .login-panel{grid-template-columns:1fr}
-  .welcome-hero{order:2}
+  .login-card{grid-template-columns:1fr}
+  .topbar{flex-direction:column;gap:12px}
+  .menu{flex-wrap:wrap}
 }

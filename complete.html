@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trial LMS — Completion</title><link rel="stylesheet" href="css/style.css"></head>
+<body data-page="complete">
+  <div class="container">
+    <header class="topbar"></header>
+    <div class="layout">
+      <aside class="sidebar"></aside>
+      <main>
+        <div class="card">
+          <h1>Congratulations — Course Complete</h1>
+          <p class="lead">You completed the short course. Final score below.</p>
+          <div style="margin-top:12px">
+            <h3>Your final score</h3>
+            <div class="progress-row">
+              <div class="linear"><div class="bar"></div></div>
+              <div class="circular"><svg width="92" height="92" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.06)" stroke-width="10" fill="none"></circle><circle class="progress-fill" cx="50" cy="50" r="42" stroke="url(#g4)" stroke-width="10" stroke-linecap="round" fill="none"></circle></svg><div class="value">0%</div></div>
+            </div>
+            <div class="stepper" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div class="card forum" style="margin-top:12px">
+          <h3>Course Discussion</h3>
+          <div id="complete-forum-messages" class="messages"></div>
+          <textarea id="complete-forum-input" placeholder="Share a final reflection..."></textarea>
+          <div style="margin-top:8px"><button id="complete-forum-post" class="btn">Post</button></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+<script src="js/auth.js"></script>
+<script src="js/lms.js"></script>
+<script src="js/forum.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  AUTH.renderChrome('complete');
+  const s = AUTH.getSession(); if(!s) return;
+  const global = LMS.globalPercentFor(s.email);
+  LMS.updateLinear('.linear', global); LMS.updateCircular('.circular', global); LMS.updateStepper('.stepper', Math.round((global/100)*4));
+  document.querySelectorAll('.value').forEach(v=>v.textContent = `${global}%`);
+  document.getElementById('complete-forum-post').addEventListener('click', ()=>{ FORUM.post('complete', document.getElementById('complete-forum-input').value); document.getElementById('complete-forum-input').value=''; });
+  FORUM.render('complete');
+});
+</script>
+</body>
+</html>
