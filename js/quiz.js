@@ -1,188 +1,186 @@
-// js/quiz.js - handles quiz rendering, live feedback, attempts, scoring and admin report push
-(function(){
-  const MAX_ATTEMPTS = 3;
-  const QUIZ_WEIGHT = { quiz1: 40, quiz2: 60 }; // weights for final calculation
+// js/quiz.js
+// Generic quiz engine (works with lesson pages).
+// Expects container with .question blocks (data-name, data-type, data-answer).
+// Uses Firestore for persistence and reporting.
+// Import usage: import { Quiz } from './js/quiz.js';
 
-  // Utility: collect question DOM blocks; expects .question elements with data-answer (for radio/text/multi)
-  function collectQuestions(container){
-    return Array.from(container.querySelectorAll('.question')).map(q => {
-      return {
-        el: q,
-        name: q.getAttribute('data-name'),
-        type: q.getAttribute('data-type') || 'radio',
-        answerRaw: q.getAttribute('data-answer') || ''
-      };
+import { db } from '../config/firebase-config.js';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { Progress } from './progress.js';
+
+function getCurrentUser(){
+  try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
+}
+
+// collect question objects from container
+function collectQuestions(container){
+  return Array.from(container.querySelectorAll('.question')).map(q=>{
+    return {
+      el: q,
+      name: q.dataset.name,
+      type: q.dataset.type || 'radio',
+      answer: q.dataset.answer || ''
+    };
+  });
+}
+
+function markOption(optionEl, status){
+  optionEl.classList.remove('correct','wrong');
+  if(status === 'correct') optionEl.classList.add('correct');
+  if(status === 'wrong') optionEl.classList.add('wrong');
+}
+
+// evaluate single question -> returns true/false/null (unanswered)
+function evaluateQuestion(q){
+  const el = q.el;
+  const type = q.type;
+  const correctRaw = q.answer;
+  const fb = el.querySelector('.feedback');
+  fb.textContent = '';
+  el.querySelectorAll('.option').forEach(o=>o.classList.remove('correct','wrong'));
+
+  if(type === 'radio'){
+    const sel = el.querySelector('input[type="radio"]:checked');
+    if(!sel) { fb.textContent = ''; return null; }
+    const ok = sel.value === correctRaw;
+    const opt = sel.closest('.option');
+    markOption(opt, ok ? 'correct' : 'wrong');
+    fb.textContent = ok ? 'Correct ✔' : 'Incorrect ✖';
+    return ok;
+  } else if(type === 'multi'){
+    const checked = Array.from(el.querySelectorAll('input[type="checkbox"]:checked')).map(i=>i.value).sort();
+    const expected = (''+correctRaw).split('|').filter(Boolean).sort();
+    el.querySelectorAll('.option').forEach(opt=>{
+      const v = opt.querySelector('input').value;
+      if(expected.includes(v) && checked.includes(v)) markOption(opt, 'correct');
+      else if(checked.includes(v) && !expected.includes(v)) markOption(opt, 'wrong');
     });
+    const ok = checked.join('|') === expected.join('|');
+    fb.textContent = ok ? 'Correct ✔' : 'Incorrect ✖';
+    return ok;
+  } else if(type === 'text'){
+    const val = (el.querySelector('input[type="text"]').value || '').trim().toLowerCase();
+    const ok = val === (''+correctRaw).trim().toLowerCase();
+    fb.textContent = ok ? 'Correct ✔' : 'Check answer';
+    return ok;
   }
+  return null;
+}
 
-  // Live feedback for a question element
-  function evaluateQuestion(q){
-    const el = q.el;
-    const type = q.type;
-    const correct = q.answerRaw;
-    const feedbackEl = el.querySelector('.feedback');
-    feedbackEl.textContent = '';
-    el.querySelectorAll('.option').forEach(o=>o.classList.remove('correct','wrong'));
+function gradeAll(container){
+  const qs = collectQuestions(container);
+  let tot = qs.length, correct = 0;
+  qs.forEach(q=>{ const r = evaluateQuestion(q); if(r === true) correct++; });
+  return tot === 0 ? 0 : Math.round((correct / tot) * 100); // percent 0..100
+}
 
-    if(type === 'radio'){
-      const sel = el.querySelector('input[type="radio"]:checked');
-      if(!sel) return null; // unanswered
-      const val = sel.value;
-      if(val === correct){
-        sel.closest('.option').classList.add('correct');
-        feedbackEl.textContent = 'Correct ✔';
-        return true;
-      } else {
-        sel.closest('.option').classList.add('wrong');
-        feedbackEl.textContent = 'Incorrect ✖';
-        return false;
-      }
-    } else if(type === 'multi'){
-      const checked = Array.from(el.querySelectorAll('input[type="checkbox"]:checked')).map(i=>i.value).sort();
-      const expected = (''+correct).split('|').filter(Boolean).sort();
-      // mark each option
-      el.querySelectorAll('.option').forEach(opt=>{
-        const v = opt.querySelector('input').value;
-        if(expected.includes(v) && checked.includes(v)) opt.classList.add('correct');
-        else if(checked.includes(v) && !expected.includes(v)) opt.classList.add('wrong');
-      });
-      const isSame = checked.join('|') === expected.join('|');
-      feedbackEl.textContent = isSame ? 'Correct ✔' : 'Incorrect ✖';
-      return isSame;
-    } else if(type === 'text'){
-      const input = el.querySelector('input[type="text"]');
-      const val = (input.value || '').trim().toLowerCase();
-      const ok = val === (''+correct).trim().toLowerCase();
-      feedbackEl.textContent = ok ? 'Correct ✔' : 'Check answer ✖';
-      return ok;
-    }
-    return null;
+// update live progress widgets (uses Progress)
+async function updateLiveProgress(container, quizId){
+  const user = getCurrentUser(); if(!user) return;
+  const thisQuizPercent = gradeAll(container);
+  const userScoresRef = doc(db, 'scores', user.email);
+  const snap = await getDoc(userScoresRef);
+  let stored = { quiz1: {best:0, attempts:0}, quiz2:{best:0, attempts:0} };
+  if(snap.exists()) stored = snap.data();
+
+  const q1 = quizId === 'quiz1' ? thisQuizPercent : (stored.quiz1?.best || 0);
+  const q2 = quizId === 'quiz2' ? thisQuizPercent : (stored.quiz2?.best || 0);
+  const global = Math.round((q1 * 0.4) + (q2 * 0.6));
+
+  // update DOM
+  const liveEl = document.getElementById('livePotential'); if(liveEl) liveEl.textContent = `${thisQuizPercent}% (this attempt)`;
+  const globalEl = document.getElementById('globalScore'); if(globalEl) globalEl.textContent = `${global}%`;
+
+  // update widgets
+  Progress.updateLinear('.linear', global);
+  Progress.updateAnimated('.animated', global);
+  Progress.updateCircular('.circular', global);
+  Progress.renderStepper('.stepper', ['Login','Intro','Quiz 1','Quiz 2','Complete'].findIndex((s,i,a)=>false) /* we'll compute differently below */);
+
+  // render stepper with completed count (compute from stored + potential)
+  const completed = 
+    1 // login
+    + 1 // intro always available
+    + ((q1 >= 50) ? 1 : 0) // heuristic: if quiz1 >= 50 considered done
+    + ((q2 >= 50) ? 1 : 0)
+    + ((global >= 80) ? 1 : 0); // completion if global >= 80
+  Progress.renderStepper('.stepper', ['Login','Intro','Quiz 1','Quiz 2','Complete'], completed);
+}
+
+// submit attempt: update Firestore `scores` doc for this user, and push a `reports` doc
+async function submitAttempt(container, quizId){
+  const user = getCurrentUser(); if(!user) { alert('Please login'); return; }
+  const uid = user.email;
+  const scoresRef = doc(db, 'scores', uid);
+  const snap = await getDoc(scoresRef);
+  let scores = { quiz1:{best:0, attempts:0}, quiz2:{best:0, attempts:0} };
+  if(snap.exists()) scores = snap.data();
+
+  const cur = scores[quizId] || { best:0, attempts:0 };
+  if(cur.attempts >= 3){ alert('You have used all attempts'); return; }
+
+  const percent = gradeAll(container);
+  const attempts = (cur.attempts || 0) + 1;
+  const best = Math.max((cur.best||0), percent);
+
+  // write back
+  await setDoc(scoresRef, { ...scores, [quizId]: { best, attempts } }, { merge: true });
+
+  // push report
+  await addDoc(collection(db, 'reports'), {
+    email: uid,
+    quizId,
+    attempt: attempts,
+    score: percent,
+    best,
+    ts: serverTimestamp()
+  });
+
+  // update UI
+  const attemptBadge = document.getElementById('attemptBadge'); if(attemptBadge) attemptBadge.textContent = `${attempts}/3`;
+  const quizScoreEl = document.getElementById('quizScore'); if(quizScoreEl) quizScoreEl.textContent = `${percent}% (best ${best}%)`;
+
+  // update global widgets using stored data
+  await updateLiveProgress(container, quizId);
+
+  if(attempts >= 3){
+    container.querySelectorAll('input,textarea,button').forEach(i => i.disabled = true);
+    alert('You have exhausted attempts for this quiz.');
+  } else {
+    alert(`Attempt recorded: ${percent}% (attempt ${attempts}/3)`);
   }
+}
 
-  // Grade all questions in a container; return percent 0..100
-  function gradeAll(container){
-    const qs = collectQuestions(container);
-    let correct = 0;
-    let total = qs.length;
-    qs.forEach(q => {
-      const res = evaluateQuestion(q);
-      if(res === true) correct++;
-      // unanswered counts as incorrect
-    });
-    return total === 0 ? 0 : Math.round((correct/total) * 100);
-  }
-
-  // Live wire: attach change/input listeners to give instant feedback and update live progress.
-  function wireLive(container, quizId){
-    collectQuestions(container).forEach(q=>{
-      if(q.type === 'text'){
-        q.el.querySelector('input[type="text"]').addEventListener('input', ()=>{
-          evaluateQuestion(q);
-          updateLiveProgress(container, quizId);
-        });
-      } else {
-        q.el.querySelectorAll('input').forEach(i=>{
-          i.addEventListener('change', ()=>{
-            evaluateQuestion(q);
-            updateLiveProgress(container, quizId);
-          });
-        });
-      }
-    });
-  }
-
-  // Update live progress widgets when answering
-  function updateLiveProgress(container, quizId){
-    const sess = AUTH.getSession();
-    if(!sess) return;
-    const thisQuizPercent = gradeAll(container); // 0..100 for the quiz
-    // Show live potential in element if present
-    const liveEl = document.getElementById('livePotential');
-    if(liveEl) liveEl.textContent = `${thisQuizPercent}% (this attempt)`;
-
-    // compute global percent by substituting thisQuizPercent for current quiz's best
-    const scores = AUTH.getScores(sess.email);
-    const q1 = quizId === 'quiz1' ? thisQuizPercent : scores.quiz1.best;
-    const q2 = quizId === 'quiz2' ? thisQuizPercent : scores.quiz2.best;
-    const global = Math.round((q1 * 0.4) + (q2 * 0.6)); // final weighted percent
-    // update UI widgets
-    LMS.updateLinear('.linear', global);
-    LMS.updateAnimated('.animated', global);
-    LMS.updateCircular('.circular', global);
-    LMS.updateStepper('.stepper', Math.round((global/100)*4));
-    const gs = document.getElementById('globalScore'); if(gs) gs.textContent = `${global}%`;
-  }
-
-  // Submit attempt: checks attempts left, grades, stores best and attempts, pushes report
-  function submitAttempt(container, quizId){
-    const sess = AUTH.getSession(); if(!sess) return alert('Please login.');
-    const open = AUTH.getQuizOpen();
-    if(!open[quizId]) return alert('This quiz is currently closed by the administrator.');
-    const scores = AUTH.getScores(sess.email);
-    const current = scores[quizId] || {best:0,attempts:0};
-    if(current.attempts >= MAX_ATTEMPTS) return alert('You have exhausted your attempts for this quiz.');
-
-    // grade
-    const percent = gradeAll(container);
-    const attempts = (current.attempts || 0) + 1;
-    const best = Math.max(current.best || 0, percent);
-    scores[quizId] = { best, attempts };
-    AUTH.setScores(sess.email, scores);
-
-    // push report
-    AUTH.pushReport({ email: sess.email, quizId, attempt: attempts, score: percent, best, ts: Date.now() });
-
-    // update UI
-    const attemptBadge = document.getElementById('attemptBadge');
-    if(attemptBadge) attemptBadge.textContent = `${attempts}/${MAX_ATTEMPTS}`;
-    const quizScoreEl = document.getElementById('quizScore'); if(quizScoreEl) quizScoreEl.textContent = `${percent}% (best ${best}%)`;
-
-    // update global
-    const global = LMS.globalPercentFor(sess.email);
-    const globalEl = document.getElementById('globalScore'); if(globalEl) globalEl.textContent = `${global}%`;
-    LMS.updateLinear('.linear', global); LMS.updateAnimated('.animated', global); LMS.updateCircular('.circular', global); LMS.updateStepper('.stepper', Math.round((global/100)*4));
-
-    if(attempts >= MAX_ATTEMPTS){
-      disableInputs(container);
-      alert('You have used all attempts for this quiz.');
+// initialize page for a quiz
+async function initQuizPage(container, quizId){
+  const user = getCurrentUser(); if(!user) return window.location.href = './index.html';
+  // wire live change handlers
+  collectQuestions(container).forEach(q=>{
+    if(q.type === 'text'){
+      const t = q.el.querySelector('input[type="text"]');
+      t && t.addEventListener('input', ()=>{ evaluateQuestion(q); updateLiveProgress(container, quizId); });
     } else {
-      alert(`Attempt recorded: ${percent}% (attempt ${attempts}/${MAX_ATTEMPTS})`);
+      q.el.querySelectorAll('input').forEach(inp => inp.addEventListener('change', ()=>{ evaluateQuestion(q); updateLiveProgress(container, quizId); }));
     }
-  }
+  });
 
-  function disableInputs(container){
-    container.querySelectorAll('input, button, textarea').forEach(el => el.disabled = true);
-  }
+  // wire submit button
+  const submitBtn = document.getElementById('submitAttempt');
+  if(submitBtn) submitBtn.addEventListener('click', ()=> submitAttempt(container, quizId));
 
-  // Initialize a quiz page: container: DOM element containing .question blocks, quizId: 'quiz1'|'quiz2'
-  function initQuizPage(container, quizId){
-    const sess = AUTH.getSession(); if(!sess) return location.href='./index.html';
-    // check open
-    const open = AUTH.getQuizOpen();
-    if(!open[quizId]){
-      container.innerHTML = '<div class="card"><strong>Quiz currently closed by admin.</strong></div>';
-      return;
-    }
-    // wire live
-    wireLive(container, quizId);
-    // wire submit
-    const submitBtn = document.getElementById('submitAttempt');
-    if(submitBtn){
-      submitBtn.addEventListener('click', ()=> submitAttempt(container, quizId));
-    }
-    // set initial attempts display
-    const scores = AUTH.getScores(sess.email);
-    const attempts = scores[quizId].attempts || 0;
-    const attemptBadge = document.getElementById('attemptBadge'); if(attemptBadge) attemptBadge.textContent = `${attempts}/${MAX_ATTEMPTS}`;
-    const quizScoreEl = document.getElementById('quizScore'); if(quizScoreEl) quizScoreEl.textContent = `${scores[quizId].best || 0}%`;
+  // load stored attempts and best
+  const scoresRef = doc(db, 'scores', user.email);
+  const snap = await getDoc(scoresRef);
+  let scores = { quiz1:{best:0,attempts:0}, quiz2:{best:0,attempts:0} };
+  if(snap.exists()) scores = snap.data();
+  const cur = scores[quizId] || { best:0, attempts:0 };
+  document.getElementById('attemptBadge') && (document.getElementById('attemptBadge').textContent = `${cur.attempts || 0}/3`);
+  document.getElementById('quizScore') && (document.getElementById('quizScore').textContent = `${cur.best || 0}%`);
 
-    // if exhausted attempts => disable
-    if(attempts >= MAX_ATTEMPTS) disableInputs(container);
-    // set initial progress global
-    const global = LMS.globalPercentFor(sess.email);
-    document.getElementById('globalScore') && (document.getElementById('globalScore').textContent = `${global}%`);
-    LMS.updateLinear('.linear', global); LMS.updateAnimated('.animated', global); LMS.updateCircular('.circular', global); LMS.updateStepper('.stepper', Math.round((global/100)*4));
-  }
+  if(cur.attempts >= 3) container.querySelectorAll('input,textarea,button').forEach(i => i.disabled = true);
 
-  window.Quiz = { initQuizPage, gradeAll, updateLiveProgress }; // expose
-})();
+  // initial progress update (based on stored)
+  await updateLiveProgress(container, quizId);
+}
+
+export const Quiz = { initQuizPage, gradeAll, updateLiveProgress };
