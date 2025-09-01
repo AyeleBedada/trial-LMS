@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ayele's College LMS - Quiz 1</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Top Menu -->
+  <header class="top-menu">
+    <h2>Ayele's College</h2>
+    <nav>
+      <a href="quiz1.html" class="active">Quiz 1</a>
+      <a href="quiz2.html">Quiz 2</a>
+      <a href="completion.html">Completion</a>
+      <button onclick="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <ul>
+      <li><a href="quiz1.html" class="active">Architecture Basics</a></li>
+      <li><a href="quiz2.html">Advanced Architecture</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <h2>Architecture: General Facts</h2>
+    <p>Architecture is both an art and a science, shaping the built environment we live in. From houses to skyscrapers, it defines how we experience space.</p>
+    <p>It reflects cultural identity, technological progress, and human creativity. Every building tells a story of its time and its people.</p>
+    <p>Architects design spaces that balance functionality, safety, and aesthetics, creating structures that serve society in multiple ways.</p>
+
+    <!-- Quiz Section -->
+    <section id="quiz1-section" class="quiz-section">
+      <h3>Quiz 1 (40%)</h3>
+      <div id="quiz1-container"></div>
+      <button id="quiz1-submit">Submit Quiz</button>
+      <p id="quiz1-feedback"></p>
+    </section>
+
+    <!-- Forum Section -->
+    <section class="forum">
+      <h3>Discussion Forum</h3>
+      <div id="quiz1-forum-messages" class="forum-messages"></div>
+      <textarea id="quiz1-forum-input" placeholder="Write a message..."></textarea>
+      <button onclick="postMessage('quiz1')">Post</button>
+    </section>
+
+    <!-- Progress -->
+    <div id="progress-bars"></div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/forum.js"></script>
+  <script src="js/quiz1.js"></script>
+</body>
+</html>

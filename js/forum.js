@@ -1,55 +1,82 @@
-// js/forum.js
-// Real-time forum using Firestore. Simple collection 'forums' with docs per message.
+/* js/forum.js
+   Simple per-quiz forum saved to localStorage.
+   Keys: 'ayele.forum.quiz1', 'ayele.forum.quiz2'
+   Supports posting, listing, and admin deleting.
+*/
 
-import { db } from '../config/firebase-config.js';
-import { collection, addDoc, query, where, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+const FORUM = (function(){
+  const PREFIX = 'ayele.forum.';
+  function keyFor(quizId){ return PREFIX + quizId; }
 
-function getUser(){ try { return JSON.parse(localStorage.getItem('currentUser')); } catch{ return null; } }
+  function getMessages(quizId){
+    try{ return JSON.parse(localStorage.getItem(keyFor(quizId)) || '[]'); } catch { return []; }
+  }
+  function saveMessages(quizId, arr){ localStorage.setItem(keyFor(quizId), JSON.stringify(arr)); }
 
-function renderMessageHtml(m){
-  return `<div class="msg" data-id="${m.id}">
-    <div class="meta"><strong>${escapeHtml(m.author)}</strong> <span class="muted">${escapeHtml(m.role)}</span> <small class="muted">${new Date(m.ts).toLocaleString()}</small></div>
-    <div class="text">${escapeHtml(m.text)}</div>
-    ${ (getUser() && getUser().role === 'admin') ? `<div style="margin-top:6px"><button data-del="${m.id}" class="btn btn-ghost">Delete</button></div>` : '' }
-  </div>`;
-}
+  function postMessage(quizId, author, role, text){
+    if(!text || !text.trim()) return;
+    const arr = getMessages(quizId);
+    const msg = { id: Date.now() + '-' + Math.random().toString(36).slice(2,7), author, role, text: text.trim(), ts: Date.now() };
+    arr.push(msg);
+    saveMessages(quizId, arr);
+    return msg;
+  }
 
-function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+  function deleteMessage(quizId, id){
+    const arr = getMessages(quizId).filter(m=>m.id !== id);
+    saveMessages(quizId, arr);
+  }
 
-// subscribe to messages for a quizId and render to containerId (string)
-export function subscribeForum(quizId, containerId){
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  const q = query(collection(db, 'forums'), where('quizId','==',quizId), orderBy('ts','asc'));
-  // subscribe
-  return onSnapshot(q, snap => {
-    const msgs = [];
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      msgs.push({ id: docSnap.id, author: d.author, role: d.role, text: d.text, ts: d.ts ? d.ts.toDate() : new Date() });
-    });
-    container.innerHTML = msgs.map(m => renderMessageHtml(m)).join('') || '<div class="muted">No posts yet</div>';
+  /* render forum area (expects container elements) */
+  function renderForum(quizId){
+    const msgs = getMessages(quizId);
+    const el = document.getElementById('forum-messages');
+    if(!el) return;
+    el.innerHTML = msgs.length ? msgs.map(m=>{
+      return `<div class="msg" data-id="${m.id}">
+        <div class="meta"><strong>${escapeHtml(m.author)}</strong> <span class="muted">${m.role}</span> <small class="muted">${new Date(m.ts).toLocaleString()}</small></div>
+        <div class="text">${escapeHtml(m.text)}</div>
+        ${isAdmin() ? `<div style="margin-top:6px"><button data-del="${m.id}" class="btn ghost">Delete</button></div>` : ''}
+      </div>`;
+    }).join('') : '<div class="muted">No messages yet — be first to post.</div>';
+
     // wire delete buttons if admin
-    container.querySelectorAll('button[data-del]').forEach(btn=>{
-      btn.addEventListener('click', async ()=> {
-        if(!confirm('Delete this post?')) return;
+    el.querySelectorAll('button[data-del]').forEach(btn=>{
+      btn.addEventListener('click', (ev)=>{
         const id = btn.getAttribute('data-del');
-        await deleteDoc(doc(db, 'forums', id));
+        if(confirm('Delete this message?')){ deleteMessage(quizId, id); renderForum(quizId); }
       });
     });
-    // scroll to bottom
-    container.scrollTop = container.scrollHeight;
-  });
-}
+  }
 
-export async function postForumMessage(quizId, text){
-  if(!text || !text.trim()) return;
-  const user = getUser(); if(!user) return alert('Please login.');
-  await addDoc(collection(db, 'forums'), {
-    quizId,
-    author: user.username || user.email,
-    role: user.role || 'student',
-    text: text.trim(),
-    ts: new Date()
-  });
-}
+  /* small helper */
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  /* helper to detect admin via AUTH module (if present) */
+  function isAdmin(){
+    try{
+      return (AUTH.getSession && AUTH.getSession().role === 'admin');
+    }catch{return false;}
+  }
+
+  /* wire posting UI (expects text area with id 'forum-input' and button to call postForum()) */
+  function wireForum(quizId){
+    const postBtn = document.getElementById('forum-post-btn') || document.querySelector('[data-forum-post]');
+    const txt = document.getElementById('forum-input');
+    const msgs = document.getElementById('forum-messages');
+    if(!txt || !postBtn) return;
+    postBtn.addEventListener('click', ()=>{
+      const session = (AUTH && AUTH.getSession && AUTH.getSession()) || null;
+      if(!session){ alert('Please login'); return location.href = './index.html'; }
+      const text = txt.value;
+      postMessage(quizId, session.username || session.email, session.role || 'student', text);
+      txt.value = '';
+      renderForum(quizId);
+
+      // scroll to bottom
+      msgs && msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+    });
+  }
+
+  return { getMessages, postMessage, deleteMessage, renderForum, wireForum };
+})();
