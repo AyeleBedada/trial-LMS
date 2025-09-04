@@ -102,6 +102,7 @@ const AUTH = (function(){
           <a href="./dashboard.html" ${active === 'dashboard' ? 'class="active"': ''}>Dashboard</a>
           <a href="./lesson1.html" ${active === 'lesson1' ? 'class="active"': ''}>Lesson 1</a>
           <a href="./lesson2.html" ${active === 'lesson2' ? 'class="active"': ''}>Lesson 2</a>
+          <a href="./lesson3.html" ${active === 'lesson3' ? 'class="active"': ''}>Lesson 3</a>
           <a href="./complete.html" ${active === 'complete' ? 'class="active"': ''}>Complete</a>
           <button id="chgPwd" class="btn btn-ghost">Change password</button>
           <button id="logoutBtn" class="btn">Logout</button>
