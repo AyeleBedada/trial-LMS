@@ -6,7 +6,7 @@
   --maxw:1200px;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:#2ea15a;-webkit-font-smoothing:antialiased}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:linear-gradient(180deg,#071027 0%, #2ea15a 100%);-webkit-font-smoothing:antialiased}
 a{color:var(--accent)}
 .container{max-width:var(--maxw);margin:20px auto;padding:16px;display:grid;gap:18px}
 
