@@ -1,6 +1,6 @@
 /* css/style.css - Trial LMS (modern, responsive) */
 :root{
-  --bg:#071027; --panel:#0d1326; --muted:#b7c1e6; --text:#eef2ff;
+  --bg:#2ea15a; --panel:#0d1326; --muted:#b7c1e6; --text:#eef2ff;
   --accent:#6c8bff; --accent2:#4de2b9; --ok:#34d399; --danger:#ff6b7a;
   --glass: rgba(255,255,255,0.03); --radius:12px; --shadow: 0 10px 30px rgba(2,6,23,0.6);
   --maxw:1200px;
@@ -19,7 +19,7 @@ a{color:var(--accent)}
 /* menu */
 .menu{display:flex;gap:8px;align-items:center}
 .menu a, .menu button{padding:8px 12px;border-radius:10px;background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:700}
-.menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#071027}
+.menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#2ea15a}
 
 /* layout */
 .layout{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
