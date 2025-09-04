@@ -7,6 +7,7 @@ const LMS = (function(){
     if(bar) bar.style.width = `${Math.max(0,Math.min(100,percent))}%`;
     el.setAttribute('aria-valuenow', String(Math.round(percent)));
   }
+
   function updateCircular(selector, percent){
     const wrap = document.querySelector(selector);
     if(!wrap) return;
@@ -19,6 +20,7 @@ const LMS = (function(){
     const label = wrap.querySelector('.value');
     if(label) label.textContent = `${Math.round(percent)}%`;
   }
+
   function updateStepper(containerSelector, completedSteps, total=4){
     const cont = document.querySelector(containerSelector);
     if(!cont) return;
@@ -30,17 +32,19 @@ const LMS = (function(){
       cont.appendChild(div);
     }
   }
+
   function updateAnimated(selector, percent){
     const el = document.querySelector(selector);
     if(!el) return;
     const runner = el.querySelector('.runner');
     if(runner) runner.style.width = `${Math.max(0,Math.min(100,percent))}%`;
   }
+
   function globalPercentFor(email){
     const s = AUTH.getScores(email);
     if(!s) return 0;
-    // s.quiz1.best, s.quiz2.best and s.quiz3.best are 0..100 (quiz %). Weighted: quiz1=40%, quiz2=30%, quiz3=30%
-    return Math.round(( (s.quiz1.best * 0.4) + (s.quiz2.best * 0.3) + (s.quiz3.best * 0.3) ));
+    return Math.round(( (s.quiz1?.best||0) * 0.4 + (s.quiz2?.best||0) * 0.3 + (s.quiz3?.best||0) * 0.3 ));
   }
+
   return { updateLinear, updateCircular, updateStepper, updateAnimated, globalPercentFor };
 })();

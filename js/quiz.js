@@ -1,7 +1,6 @@
 // js/quiz.js - handles quiz rendering, live feedback, attempts, scoring and admin report push
 (function(){
   const MAX_ATTEMPTS = 3;
-  const QUIZ_WEIGHT = { quiz1: 40, quiz2: 30, quiz3: 30 }; // weights for final calculation
 
   // Collect .question blocks from a container
   function collectQuestions(container){
@@ -21,7 +20,7 @@
     const type = q.type;
     const correct = q.answerRaw;
     const feedbackEl = el.querySelector('.feedback');
-    feedbackEl.textContent = '';
+    if(feedbackEl) feedbackEl.textContent = '';
     el.querySelectorAll('.option').forEach(o=>o.classList.remove('correct','wrong'));
 
     if(type === 'radio'){
@@ -30,11 +29,11 @@
       const val = sel.value;
       if(val === correct){
         sel.closest('.option').classList.add('correct');
-        feedbackEl.textContent = 'Correct ✔';
+        if(feedbackEl) feedbackEl.textContent = 'Correct ✔';
         return true;
       } else {
         sel.closest('.option').classList.add('wrong');
-        feedbackEl.textContent = 'Incorrect ✖';
+        if(feedbackEl) feedbackEl.textContent = 'Incorrect ✖';
         return false;
       }
     } else if(type === 'multi'){
@@ -46,13 +45,13 @@
         else if(checked.includes(v) && !expected.includes(v)) opt.classList.add('wrong');
       });
       const isSame = checked.join('|') === expected.join('|');
-      feedbackEl.textContent = isSame ? 'Correct ✔' : 'Incorrect ✖';
+      if(feedbackEl) feedbackEl.textContent = isSame ? 'Correct ✔' : 'Incorrect ✖';
       return isSame;
     } else if(type === 'text'){
       const input = el.querySelector('input[type="text"]');
       const val = (input.value || '').trim().toLowerCase();
       const ok = val === (''+correct).trim().toLowerCase();
-      feedbackEl.textContent = ok ? 'Correct ✔' : 'Check answer ✖';
+      if(feedbackEl) feedbackEl.textContent = ok ? 'Correct ✔' : 'Check answer ✖';
       return ok;
     }
     return null;
@@ -73,7 +72,8 @@
   function wireLive(container, quizId, widgets){
     collectQuestions(container).forEach(q=>{
       if(q.type === 'text'){
-        q.el.querySelector('input[type="text"]').addEventListener('input', ()=>{
+        const input = q.el.querySelector('input[type="text"]');
+        if(input) input.addEventListener('input', ()=>{
           evaluateQuestion(q);
           updateLiveProgress(container, quizId, widgets);
         });
@@ -92,13 +92,14 @@
   function updateLiveProgress(container, quizId, widgets){
     const sess = AUTH.getSession();
     if(!sess) return;
+
     const thisQuizPercent = gradeAll(container);
     if(widgets.livePotential) widgets.livePotential.textContent = `${thisQuizPercent}% (this attempt)`;
 
     const scores = AUTH.getScores(sess.email);
-    const q1 = quizId === 'quiz1' ? thisQuizPercent : scores.quiz1.best;
-    const q2 = quizId === 'quiz2' ? thisQuizPercent : scores.quiz2.best;
-    const q3 = quizId === 'quiz3' ? thisQuizPercent : scores.quiz3.best;
+    const q1 = quizId === 'quiz1' ? thisQuizPercent : scores.quiz1?.best || 0;
+    const q2 = quizId === 'quiz2' ? thisQuizPercent : scores.quiz2?.best || 0;
+    const q3 = quizId === 'quiz3' ? thisQuizPercent : scores.quiz3?.best || 0;
     const global = Math.round((q1*0.4)+(q2*0.3)+(q3*0.3));
 
     LMS.updateLinear('.linear', global);
@@ -110,7 +111,8 @@
 
   // Submit attempt
   function submitAttempt(container, quizId, widgets){
-    const sess = AUTH.getSession(); if(!sess) return alert('Please login.');
+    const sess = AUTH.getSession(); 
+    if(!sess) return alert('Please login.');
     const open = AUTH.getQuizOpen();
     if(!open[quizId]) return alert('This quiz is currently closed by the administrator.');
 
@@ -149,14 +151,15 @@
 
   // Initialize quiz in a container
   function initQuizPage(container, quizId){
-    const sess = AUTH.getSession(); if(!sess) return location.href='./index.html';
+    const sess = AUTH.getSession(); 
+    if(!sess) return location.href='./index.html';
+
     const open = AUTH.getQuizOpen();
     if(!open[quizId]){
       container.innerHTML = '<div class="card"><strong>Quiz currently closed by admin.</strong></div>';
       return;
     }
 
-    // widgets inside same <main>
     const root = container.closest('main') || document;
     const widgets = {
       submitBtn: root.querySelector('.submitAttempt'),
@@ -173,9 +176,9 @@
     }
 
     const scores = AUTH.getScores(sess.email);
-    const attempts = scores[quizId].attempts || 0;
+    const attempts = scores[quizId]?.attempts || 0;
     if(widgets.attemptBadge) widgets.attemptBadge.textContent = `${attempts}/${MAX_ATTEMPTS}`;
-    if(widgets.quizScore) widgets.quizScore.textContent = `${scores[quizId].best||0}%`;
+    if(widgets.quizScore) widgets.quizScore.textContent = `${scores[quizId]?.best||0}%`;
 
     if(attempts >= MAX_ATTEMPTS) disableInputs(container);
 
