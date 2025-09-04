@@ -1,6 +1,27 @@
-[
-  { "email": "ayele.architect@gmail.com", "username":"admin", "password": "alliswell123", "role": "admin", "name":"Administrator" },
-  { "email": "ayele.bedada@eiabc.edu.et", "username":"Ayele1", "password": "thesecond123", "role": "student", "name":"Ayele One" },
-  { "email": "ayele.bedada@aau.edu.et", "username":"Ayele2", "password": "alliswell123", "role": "student", "name":"Ayele Two" }
-]
+General Notes: 
 
+assets/ note
+Place your course logo and avatars here. Example files:
+assets/logo.png
+assets/avatar_default.png
+(No code file — just add images to this folder.)
+
+
+integrated EmailJS and Firebase using the credentials you provided (you gave the EmailJS service/template/key and Firebase config). The code is fully client-side (GitHub Pages friendly) and uses Firestore for cross-device persistence.
+
+
+
+
+Final notes, important operational checklist (read first)
+Enable Firestore in your Firebase console. Set appropriate security rules for production. For testing you can allow read/write, but before launch restrict appropriately.
+EmailJS: Ensure your template (template_c6pl9c9) expects to_email, subject, message (or adjust the sendMail call).
+Hosting: Deploy to GitHub Pages (gh-pages branch or main branch with docs/) so origin is https. Firebase and EmailJS require HTTPS for some features.
+Testing login: On the login page you can:
+Enter email + correct password from data/users.json and press Login
+OR press "Send Login Code" to receive a 6-digit code (via EmailJS) then use that code as password to log in (the code is stored temporarily in localStorage).
+Admin account: ayele.architect@gmail.com with password alliswell123. Login as that user to view admin.html features.
+Persistence: Firestore stores users doc, attempts, forums, reports. These are used to sync across devices.
+Prevent copying/screenshots: Client-side prevention is implemented (disable copy, contextmenu, PrintScreen key intercept). This is best-effort — it's impossible to fully prevent screenshots, but the admin role bypasses copying (admin page allows context menu by having oncontextmenu="return true").
+Three attempts rule is enforced per quiz via attempts document in Firestore. Admin can toggle quizzes open/close via admin config document.
+Quizzes: Each quiz file includes the required number of questions (14 or 15). They produce immediate live feedback upon submission.
+Global progress: Students get 1% for visiting a page (tracked once per page) and get quiz contribution equal to (rawCorrect / totalQuestions) * quizWeightPct. Admin report aggregates progress and offers CSV export.
