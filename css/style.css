@@ -72,7 +72,7 @@ a{color:#0f1528}
 /* welcome/login page */
 .welcome{display:grid;place-items:center;height:80vh}
 .login-card{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:center}
-.login-form input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0,5);color:var(--text)}
+.login-form input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0,5);color:#000000}
 .error{color:var(--danger)}
 
 /* responsive */
