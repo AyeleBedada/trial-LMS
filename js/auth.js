@@ -153,7 +153,7 @@ const AUTH = (function(){
         side.appendChild(adminHtml);
         document.getElementById('openQ1').checked = !!open.quiz1;
         document.getElementById('openQ2').checked = !!open.quiz2;
-        document.getElementById('openQ2').checked = !!open.quiz3;
+        document.getElementById('openQ3').checked = !!open.quiz3;
         document.getElementById('openQ1').addEventListener('change', e=>{ open.quiz1 = e.target.checked; setQuizOpen(open); });
         document.getElementById('openQ2').addEventListener('change', e=>{ open.quiz2 = e.target.checked; setQuizOpen(open); });
         document.getElementById('openQ3').addEventListener('change', e=>{ open.quiz3 = e.target.checked; setQuizOpen(open); });
