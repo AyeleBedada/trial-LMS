@@ -1,6 +1,6 @@
 /* css/style.css - Trial LMS (modern, responsive) */
 :root{
-  --bg:#2ea15a; --panel:#2ea15a; --muted:#b7c1e6; --text:#eef2ff;
+  --bg:#2ea15a; --panel:#2ea15a; --muted:#b7c1e6; --text:#ffffff;
   --accent:#6c8bff; --accent2:#4de2b9; --ok:#34d399; --danger:#ff6b7a;
   --glass: rgba(255,255,255,0.03); --radius:12px; --shadow: 0 10px 30px rgba(2,6,23,0.6);
   --maxw:1200px;
@@ -66,7 +66,7 @@ a{color:#0f1528}
 .msg .text{margin-top:6px;color:var(--muted)}
 
 /* buttons + small util */
-.btn{background:linear-gradient(90deg,#0f1528,#0f1528);color:#051026;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+.btn{background:#3f588a;color:#ffffff;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
 .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
 
 /* welcome/login page */
