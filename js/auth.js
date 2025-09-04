@@ -75,14 +75,24 @@ const AUTH = (function(){
   /* logout helper used by pages */
   function logout(){ clearSession(); location.href = './index.html'; }
 
-  /* change password (stored only locally) */
-  function changePassword(){
-    const s = getSession(); if(!s) return alert('Not signed in');
-    const np = prompt('Enter new password (stored locally for demo only):');
-    if(!np || np.length < 4) return alert('Password must be at least 4 characters.');
-    setOverride(s.email, np);
-    alert('Password updated locally.');
+/* change password (stored only locally) */
+function changePassword(){
+  const s = getSession();
+  if(!s) return alert('Not signed in');
+
+  const uname = prompt('Enter your username to confirm identity:');
+  if(!uname || uname.trim() !== s.username){
+    return alert('Username does not match the logged-in user.');
   }
+
+  const np = prompt('Enter new password (stored locally for demo only):');
+  if(!np || np.length < 4){
+    return alert('Password must be at least 4 characters.');
+  }
+
+  setOverride(s.email, np);
+  alert('Password updated locally.');
+}
 
   /* render header + sidebar on protected pages */
   function renderChrome(active){
@@ -178,12 +188,13 @@ const AUTH = (function(){
   }
 
   /* Expose */
-  return {
-    fetchUsers, setSession, getSession, clearSession, wireLogin,
-    logout: () => { clearSession(); location.href='./index.html' },
-    ensureScores, getScores, setScores, pushReport, getReports,
-    getQuizOpen, setQuizOpen, renderChrome
-  };
+return {
+  fetchUsers, setSession, getSession, clearSession, wireLogin,
+  logout: () => { clearSession(); location.href='./index.html' },
+  ensureScores, getScores, setScores, pushReport, getReports,
+  getQuizOpen, setQuizOpen, renderChrome,
+  changePassword   // ✅ ensure exposed so event binding works
+};
 })();
 
 /* Auto-wire login if form on page */
