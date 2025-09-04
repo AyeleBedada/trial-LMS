@@ -1,7 +1,7 @@
 // js/quiz.js - handles quiz rendering, live feedback, attempts, scoring and admin report push
 (function(){
   const MAX_ATTEMPTS = 3;
-  const QUIZ_WEIGHT = { quiz1: 40, quiz2: 60 }; // weights for final calculation
+  const QUIZ_WEIGHT = { quiz1: 40, quiz2: 30, quiz3: 30  }; // weights for final calculation
 
   // Utility: collect question DOM blocks; expects .question elements with data-answer (for radio/text/multi)
   function collectQuestions(container){
