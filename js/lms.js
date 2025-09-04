@@ -39,8 +39,8 @@ const LMS = (function(){
   function globalPercentFor(email){
     const s = AUTH.getScores(email);
     if(!s) return 0;
-    // s.quiz1.best and s.quiz2.best are 0..100 (quiz %). Weighted: quiz1=40%, quiz2=60%
-    return Math.round(( (s.quiz1.best * 0.4) + (s.quiz2.best * 0.6) ));
+    // s.quiz1.best, s.quiz2.best and s.quiz3.best are 0..100 (quiz %). Weighted: quiz1=40%, quiz2=30%, quiz3=30%
+    return Math.round(( (s.quiz1.best * 0.4) + (s.quiz2.best * 0.3) + (s.quiz3.best * 0.3) ));
   }
   return { updateLinear, updateCircular, updateStepper, updateAnimated, globalPercentFor };
 })();

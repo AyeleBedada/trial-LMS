@@ -32,7 +32,7 @@ const AUTH = (function(){
   /* scores */
   function ensureScores(email){
     const all = JSON.parse(localStorage.getItem(KEYS.SCORES) || '{}');
-    if(!all[email]) all[email] = { quiz1:{best:0,attempts:0}, quiz2:{best:0,attempts:0} };
+    if(!all[email]) all[email] = { quiz1:{best:0,attempts:0}, quiz2:{best:0,attempts:0}, quiz3:{best:0,attempts:0} };
     localStorage.setItem(KEYS.SCORES, JSON.stringify(all));
     return all;
   }
@@ -44,7 +44,7 @@ const AUTH = (function(){
   function getReports(){ return JSON.parse(localStorage.getItem(KEYS.REPORTS) || '[]'); }
 
   /* quiz open */
-  function getQuizOpen(){ return Object.assign({quiz1:true,quiz2:true}, JSON.parse(localStorage.getItem(KEYS.QUIZ_OPEN) || '{}')); }
+  function getQuizOpen(){ return Object.assign({quiz1:true,quiz2:true,quiz3:true}, JSON.parse(localStorage.getItem(KEYS.QUIZ_OPEN) || '{}')); }
   function setQuizOpen(state){ localStorage.setItem(KEYS.QUIZ_OPEN, JSON.stringify(state)); }
 
   /* wire login form on index.html */
@@ -113,7 +113,7 @@ const AUTH = (function(){
     const side = document.querySelector('.sidebar');
     if(side){
       const scores = getScores(session.email);
-      const global = Math.round((scores.quiz1.best * 0.4) + (scores.quiz2.best * 0.6));
+      const global = Math.round((scores.quiz1.best * 0.4) + (scores.quiz2.best * 0.3) + (scores.quiz3.best * 0.3));
       side.innerHTML = `
         <div class="user">
           <div class="avatar" aria-hidden="true"></div>
@@ -126,6 +126,7 @@ const AUTH = (function(){
           <a href="./dashboard.html" aria-current="${active==='dashboard'?'page':'false'}">Intro <span class="muted">${''}</span></a>
           <a href="./lesson1.html" aria-current="${active==='lesson1'?'page':'false'}">Lesson 1 <span class="muted">${scores.quiz1.best}%</span></a>
           <a href="./lesson2.html" aria-current="${active==='lesson2'?'page':'false'}">Lesson 2 <span class="muted">${scores.quiz2.best}%</span></a>
+          <a href="./lesson3.html" aria-current="${active==='lesson3'?'page':'false'}">Lesson 3 <span class="muted">${scores.quiz3.best}%</span></a>
           <a href="./complete.html" aria-current="${active==='complete'?'page':'false'}">Complete <span class="muted">${global}%</span></a>
         </nav>
         <div style="margin-top:12px" class="card">
@@ -144,14 +145,17 @@ const AUTH = (function(){
           <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
             <label><input type="checkbox" id="openQ1"> Quiz1 open</label>
             <label><input type="checkbox" id="openQ2"> Quiz2 open</label>
+            <label><input type="checkbox" id="openQ3"> Quiz3 open</label>
             <button id="viewReports" class="btn btn-ghost">View Reports</button>
           </div>
           <div id="adminReports" style="margin-top:10px;max-height:180px;overflow:auto"></div>`;
         side.appendChild(adminHtml);
         document.getElementById('openQ1').checked = !!open.quiz1;
         document.getElementById('openQ2').checked = !!open.quiz2;
+        document.getElementById('openQ2').checked = !!open.quiz3;
         document.getElementById('openQ1').addEventListener('change', e=>{ open.quiz1 = e.target.checked; setQuizOpen(open); });
         document.getElementById('openQ2').addEventListener('change', e=>{ open.quiz2 = e.target.checked; setQuizOpen(open); });
+        document.getElementById('openQ3').addEventListener('change', e=>{ open.quiz3 = e.target.checked; setQuizOpen(open); });
         document.getElementById('viewReports').addEventListener('click', ()=>renderReports());
         renderReportsSummary();
       }

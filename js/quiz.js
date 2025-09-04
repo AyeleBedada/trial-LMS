@@ -104,7 +104,8 @@
     const scores = AUTH.getScores(sess.email);
     const q1 = quizId === 'quiz1' ? thisQuizPercent : scores.quiz1.best;
     const q2 = quizId === 'quiz2' ? thisQuizPercent : scores.quiz2.best;
-    const global = Math.round((q1 * 0.4) + (q2 * 0.6)); // final weighted percent
+    const q3 = quizId === 'quiz3' ? thisQuizPercent : scores.quiz3.best;
+    const global = Math.round((q1 * 0.4) + (q2 * 0.3) + (q3 * 0.3)); // final weighted percent
     // update UI widgets
     LMS.updateLinear('.linear', global);
     LMS.updateAnimated('.animated', global);
@@ -154,7 +155,7 @@
     container.querySelectorAll('input, button, textarea').forEach(el => el.disabled = true);
   }
 
-  // Initialize a quiz page: container: DOM element containing .question blocks, quizId: 'quiz1'|'quiz2'
+  // Initialize a quiz page: container: DOM element containing .question blocks, quizId: 'quiz1'|'quiz2'|'quiz3'
   function initQuizPage(container, quizId){
     const sess = AUTH.getSession(); if(!sess) return location.href='./index.html';
     // check open
