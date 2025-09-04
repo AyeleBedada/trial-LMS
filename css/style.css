@@ -12,7 +12,7 @@ a{color:var(--accent)}
 
 /* topbar */
 .topbar{
-  display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;border:1px solid rgba(255,255,255,0.02);box-shadow:var(--shadow)
+  display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;border:1px solid rgba(255,255,255,0.02)
 }
 .brand{display:flex;gap:12px;align-items:center}
 .logo{width:44px;height:44px;border-radius:10px;background:conic-gradient(from 180deg,var(--accent),var(--accent2))}
